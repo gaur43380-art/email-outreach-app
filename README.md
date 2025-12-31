@@ -201,7 +201,7 @@ MIT License
 
 ## 👤 Author
 
-Your Name - [@yourusername](https://github.com/yourusername)
+Gaurav Dwivedi - [gaurav.dwivedi.official.678@gmail.com](https://github.com/gaur43380-art)
 
 ## 🙏 Acknowledgments
 
