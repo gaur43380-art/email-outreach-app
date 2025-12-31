@@ -1,0 +1,58 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="admin-header">
+      <h2>👨‍💼 Admin Dashboard</h2>
+      <div class="admin-nav">
+        <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+        <a href="/logout" class="btn-danger">Logout</a>
+      </div>
+    </div>
+
+    <div class="admin-stats">
+      <div class="stat-card">
+        <h3 id="totalUsers">0</h3>
+        <p>Total Users</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="activeUsers">0</h3>
+        <p>Active Users</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="pausedUsers">0</h3>
+        <p>Paused Users</p>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="usersTable" class="admin-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Gmail</th>
+            <th>Sheet</th>
+            <th>Resume</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" class="loading-cell">Loading users...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/frontend/js/admin.js"></script>
+</body>
+</html>

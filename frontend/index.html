@@ -1,0 +1,90 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Outreach App - Login</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Email Outreach App</h1>
+        <div class="login-box">
+            <form action="/login" method="post">
+                <h2>Login</h2>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email">
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+
+                <button type="submit">Login</button>
+            </form>
+
+            <form action="/signup" method="post">
+                <h2>Sign Up</h2>
+                
+                <!-- ✅ NEW: Full Name Field -->
+                <label for="full_name">Your Full Name *</label>
+                <input 
+                    type="text" 
+                    id="full_name" 
+                    name="full_name" 
+                    required
+                    placeholder="e.g., John Doe"
+                    title="This will be used as {MyName} in your emails"
+                >
+                <small style="color: #666; display: block; margin-top: -10px; margin-bottom: 10px;">
+                    This name will appear in your emails as the sender
+                </small>
+
+                <label for="signup_email">Email</label>
+                <input type="email" id="signup_email" name="email" required placeholder="Enter your email">
+
+                <label for="signup_password">Password</label>
+                <input type="password" id="signup_password" name="password" required placeholder="Enter your password">
+
+                <!-- Resume Link Field -->
+                <label for="resume_link">Resume Link (Google Drive/Dropbox)</label>
+                <input 
+                    type="url" 
+                    id="resume_link" 
+                    name="resume_link" 
+                    placeholder="https://drive.google.com/file/d/..."
+                    title="Paste your resume link from Google Drive or Dropbox"
+                >
+                <small style="color: #666; display: block; margin-top: -10px; margin-bottom: 10px;">
+                    Optional - You can add this later from dashboard
+                </small>
+
+                <!-- Google Sheet ID Field -->
+                <label for="sheet_id">Google Sheet ID (Optional)</label>
+                <input 
+                    type="text" 
+                    id="sheet_id" 
+                    name="sheet_id" 
+                    placeholder="1A2B3C4D5E6F7G8H9I0J..."
+                    title="Get this from your Google Sheet URL"
+                >
+                <small style="color: #666; display: block; margin-top: -10px; margin-bottom: 10px;">
+                    Optional - You can add this later from dashboard
+                </small>
+
+                <button type="submit">Sign Up</button>
+            </form>
+
+            <div class="note">
+                <p>Use your website credentials only. Admin access is restricted.</p>
+                <p><strong>After signup, you'll need to:</strong></p>
+                <ul style="text-align: left; font-size: 14px;">
+                    <li>Connect your Gmail account</li>
+                    <li>Set up your email template & subject</li>
+                    <li>Add your Google Sheet ID (if not provided)</li>
+                    <li>Add your resume link (if not provided)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

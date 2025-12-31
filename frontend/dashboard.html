@@ -1,0 +1,159 @@
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Outreach Dashboard</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Email Outreach Dashboard</h1>
+
+        <!-- User Info Section -->
+        <div class="user-info" id="userInfo">
+            <h3>Account Status</h3>
+            <p><strong>Your Name:</strong> <span id="userName">Loading...</span></p>
+            <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+            <p><strong>Gmail Connected:</strong> <span id="gmailStatus">❌ Not Connected</span></p>
+            <p><strong>Sheet Connected:</strong> <span id="sheetStatus">❌ Not Connected</span></p>
+            <p><strong>Resume Added:</strong> <span id="resumeStatus">❌ Not Added</span></p>
+            <p><strong>Templates Set:</strong> <span id="templateStatus">❌ Not Set</span></p>
+            <p><strong>Sending Status:</strong> <span id="sendingStatus">Paused</span></p>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="settings-section">
+            <h2>⚙️ My Settings</h2>
+            
+            <!-- ✅ NEW: Full Name -->
+            <div style="margin-bottom: 15px;">
+                <label for="full_name"><strong>Your Full Name:</strong></label>
+                <input 
+                    type="text" 
+                    id="full_name" 
+                    placeholder="e.g., John Doe"
+                    style="width: 100%; padding: 8px; margin-top: 5px;"
+                >
+                <small style="color: #666;">This will be used as <code>{MyName}</code> in your emails</small>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="resume_link"><strong>Resume Link (Google Drive/Dropbox):</strong></label>
+                <input 
+                    type="url" 
+                    id="resume_link" 
+                    placeholder="https://drive.google.com/file/d/..."
+                    style="width: 100%; padding: 8px; margin-top: 5px;"
+                >
+                <small style="color: #666;">This will be used as <code>{ResumeLink}</code> in your emails</small>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="sheet_id"><strong>Google Sheet ID:</strong></label>
+                <input 
+                    type="text" 
+                    id="sheet_id" 
+                    placeholder="1A2B3C4D5E6F7G8H9I0J..."
+                    style="width: 100%; padding: 8px; margin-top: 5px;"
+                >
+                <small style="color: #666;">Get this from your Sheet URL: docs.google.com/spreadsheets/d/<strong>THIS_PART</strong>/edit</small>
+            </div>
+
+            <!-- ✅ NEW: Email Subject -->
+            <div style="margin-bottom: 15px;">
+                <label for="email_subject"><strong>Email Subject Line:</strong></label>
+                <input 
+                    type="text" 
+                    id="email_subject" 
+                    placeholder="e.g., Application for [Position] at [Company]"
+                    style="width: 100%; padding: 8px; margin-top: 5px;"
+                >
+                <small style="color: #666;">The subject line for all your emails</small>
+            </div>
+
+            <!-- Initial Email Template -->
+            <div style="margin-bottom: 15px;">
+                <label for="email_template"><strong>📧 Initial Email Template:</strong></label>
+                <textarea 
+                    id="email_template" 
+                    rows="12"
+                    placeholder="Dear Hiring Manager,
+
+My name is {MyName}, and I'm writing to express my interest in the {Name} position at {Company}.
+
+I've attached my resume for your review: {ResumeLink}
+
+Thank you for your time.
+
+Best regards,
+{MyName}"
+                    style="width: 100%; padding: 8px; margin-top: 5px; font-family: monospace;"
+                ></textarea>
+                <small style="color: #666;">
+                    This template will be used for the <strong>first email</strong> to each contact.
+                </small>
+            </div>
+
+            <!-- ✅ NEW: Follow-up Template -->
+            <div style="margin-bottom: 15px;">
+                <label for="followup_template"><strong>🔄 Follow-up Email Template:</strong></label>
+                <textarea 
+                    id="followup_template" 
+                    rows="10"
+                    placeholder="Dear Hiring Manager,
+
+I wanted to follow up on my previous email regarding the {Name} position at {Company}.
+
+I remain very interested in this opportunity. You can view my resume here: {ResumeLink}
+
+Thank you for your consideration.
+
+Best regards,
+{MyName}"
+                    style="width: 100%; padding: 8px; margin-top: 5px; font-family: monospace;"
+                ></textarea>
+                <small style="color: #666;">
+                    This template will be used for <strong>all follow-up emails</strong> (2nd, 3rd, 4th, and 5th emails).
+                </small>
+            </div>
+
+            <div style="background: #e0f2fe; padding: 15px; border-left: 4px solid #0284c7; border-radius: 5px; margin-bottom: 15px;">
+                <p style="margin: 0; font-weight: 600;">📝 Available Placeholders:</p>
+                <ul style="margin: 5px 0 0 20px; padding: 0;">
+                    <li><code>{MyName}</code> or <code>{My Name}</code> - Your full name</li>
+                    <li><code>{Name}</code> - Recipient's name (Column B in sheet)</li>
+                    <li><code>{Company}</code> or <code>{company}</code> - Company name (Column C in sheet)</li>
+                    <li><code>{ResumeLink}</code> or <code>{Resume Link}</code> - Your resume link</li>
+                </ul>
+            </div>
+
+            <button onclick="saveSettings()" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                💾 Save All Settings
+            </button>
+            <span id="settingsStatus" style="margin-left: 10px; font-weight: bold;"></span>
+        </div>
+
+        <!-- Dashboard Actions -->
+        <div class="dashboard-actions">
+            <h2>Quick Actions</h2>
+            <ul>
+                <li><a href="#" onclick="connectGmail(); return false;">🔗 Connect Gmail</a></li>
+                <li><a href="#" onclick="startSending(); return false;">▶️ Start Sending Emails</a></li>
+                <li><a href="logs.html">📊 View Email Logs</a></li>
+                <li><a href="/logout">🚪 Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="dashboard-controls">
+            <button onclick="pauseSending()">⏸️ Pause Sending</button>
+            <button onclick="resumeSending()">▶️ Resume Sending</button>
+        </div>
+
+        <div id="status" class="note"></div>
+    </div>
+
+    <script src="/frontend/js/dashboard.js"></script>
+</body>
+</html>

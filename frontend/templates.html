@@ -1,0 +1,65 @@
+<!-- templates.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Template</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h2 { margin-bottom: 20px; }
+        textarea { width: 100%; margin-bottom: 20px; font-family: monospace; }
+        .template-section { margin-bottom: 20px; background: #f9f9f9; padding: 20px; border-radius: 5px; }
+        #saveStatus { font-weight: bold; margin-left: 10px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info-box { background: #e3f2fd; padding: 15px; border-left: 4px solid #2196F3; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<h2>Email Template Editor</h2>
+
+<div class="info-box">
+    <p><strong>Important:</strong> This ONE template will be used for ALL emails (initial email and all follow-ups).</p>
+    <p><strong>Available Placeholders:</strong></p>
+    <ul>
+        <li><code>{Name}</code> - Recipient's name from Google Sheet</li>
+        <li><code>{Company}</code> - Company name from Google Sheet</li>
+        <li><code>{MyName}</code> - Your email address</li>
+        <li><code>{ResumeLink}</code> - Your resume link (from settings)</li>
+    </ul>
+</div>
+
+<div class="template-section">
+    <h3>Your Email Template</h3>
+    <textarea id="emailTemplate" rows="15" placeholder="Write your email template here...">Hi {Name},
+
+I hope this email finds you well. I am reaching out regarding opportunities at {Company}.
+
+[Add your personalized message here]
+
+You can view my resume here: {ResumeLink}
+
+Best regards,
+{MyName}</textarea>
+</div>
+
+<div>
+    <button onclick="saveTemplate()" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+        Save Template
+    </button>
+    <button onclick="loadTemplate()" style="background: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+        Load Saved Template
+    </button>
+    <span id="saveStatus"></span>
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="dashboard.html" style="color: #2196F3; text-decoration: none;">← Back to Dashboard</a>
+</div>
+
+<script src="/frontend/js/templates.js"></script>
+
+</body>
+</html>
