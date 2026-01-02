@@ -6,6 +6,9 @@ uvicorn[standard]==0.32.0
 python-multipart==0.0.12
 starlette==0.38.6
 
+# Session Management (CRITICAL - was missing!)
+itsdangerous==2.2.0
+
 # Database
 sqlalchemy==2.0.36
 
