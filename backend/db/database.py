@@ -1,3 +1,5 @@
+# backend/db/database.py
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.engine import Engine
@@ -8,13 +10,18 @@ from backend.config import DATABASE_URL
 # DATABASE ENGINE
 # ======================================================
 
+# ✅ Conditionally add connect_args only for SQLite
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}  # Only for SQLite
+
 engine: Engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Required for SQLite
-    pool_size=20,           # ✅ Increased from default 5
-    max_overflow=40,        # ✅ Increased from default 10
-    pool_pre_ping=True,     # ✅ Verify connections before using
-    pool_recycle=3600       # ✅ Recycle connections after 1 hour
+    connect_args=connect_args,  # ✅ Empty dict for PostgreSQL, SQLite args for SQLite
+    pool_size=20,                # Increased pool size
+    max_overflow=40,             # Increased overflow
+    pool_pre_ping=True,          # Verify connections before using
+    pool_recycle=3600            # Recycle connections after 1 hour
 )
 
 # ======================================================
