@@ -1,4 +1,7 @@
+# backend/services/gmail_service.py
+
 import base64
+import json
 import os
 import re
 from email.message import EmailMessage
@@ -14,7 +17,7 @@ from backend.config import GMAIL_SCOPES
 from backend.models.email_log import EmailLog
 from backend.services.sheets_service import (
     read_all_rows,
-    mark_email_sent,  # ✅ Use the proper function
+    mark_email_sent,
     mark_bounced,
     mark_replied,
 )
@@ -23,16 +26,37 @@ from backend.services.sheets_service import (
 # GMAIL SERVICE
 # ======================================================
 
-def get_gmail_service(token_path: str):
-    if not token_path or not os.path.exists(token_path):
-        raise Exception("Gmail not connected for this user")
-
-    creds = Credentials.from_authorized_user_file(
-        token_path,
-        GMAIL_SCOPES
-    )
-
-    return build("gmail", "v1", credentials=creds)
+def get_gmail_service(token_path: str = None, token_json: str = None):
+    """
+    Create Gmail service using token from database or file.
+    Prioritizes database token (for Render), falls back to file (for local dev).
+    
+    Args:
+        token_path: Path to token file (for local development)
+        token_json: Token JSON string (for production/Render)
+    """
+    if token_json:
+        # ✅ Use token from database (production/Render)
+        try:
+            token_data = json.loads(token_json)
+            creds = Credentials.from_authorized_user_info(
+                token_data,
+                GMAIL_SCOPES
+            )
+            return build("gmail", "v1", credentials=creds)
+        except Exception as e:
+            print(f"Error loading token from database: {e}")
+            # Fall through to file-based token
+    
+    # Fallback: Use token from file (local development)
+    if token_path and os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(
+            token_path,
+            GMAIL_SCOPES
+        )
+        return build("gmail", "v1", credentials=creds)
+    
+    raise Exception("Gmail not connected for this user")
 
 
 # ======================================================
@@ -47,7 +71,7 @@ def send_email(
     subject: str,
     body: str,
     row_number: int,
-    followup_count: int  # ✅ This should be the NEW count (already incremented in scheduler)
+    followup_count: int
 ):
     """
     Send an email via Gmail API.
@@ -55,22 +79,20 @@ def send_email(
     Args:
         followup_count: The NEW followup count (1, 2, 3, 4, or 5) AFTER this email is sent
     """
-    service = get_gmail_service(user.gmail_token_path)
+    # ✅ Pass both token_path and token_json
+    service = get_gmail_service(user.gmail_token_path, user.gmail_token_json)
 
     message = EmailMessage()
     message["To"] = to_email
     message["From"] = "me"
     message["Subject"] = subject
     
-    # ✅ Include resume link in email body (not as attachment)
+    # Include resume link in email body (not as attachment)
     full_body = body
-    if user.resume_link:  # Assuming you store resume link in User model
+    if user.resume_link:
         full_body += f"\n\nResume: {user.resume_link}"
     
     message.set_content(full_body)
-
-    # ❌ REMOVED: Fixed resume attachment
-    # If you want to support file attachments later, you can add per-user file storage
 
     encoded_message = base64.urlsafe_b64encode(
         message.as_bytes()
@@ -82,10 +104,10 @@ def send_email(
             body={"raw": encoded_message}
         ).execute()
 
-        # ✅ Update Google Sheet properly (includes Next_Send_Date calculation)
+        # Update Google Sheet properly (includes Next_Send_Date calculation)
         mark_email_sent(sheet_id, row_number, followup_count)
 
-        # ✅ Log to database
+        # Log to database
         log = EmailLog(
             user_id=user.id,
             to_email=to_email,
@@ -100,7 +122,7 @@ def send_email(
     except HttpError as e:
         error_msg = str(e)
         
-        # ✅ Check if it's a bounce error (invalid email)
+        # Check if it's a bounce error (invalid email)
         if any(keyword in error_msg.lower() for keyword in [
             "address not found",
             "user unknown",
@@ -142,7 +164,8 @@ def check_replies(
     3. Checks their Gmail threads for replies
     4. Marks them as replied if found
     """
-    service = get_gmail_service(user.gmail_token_path)
+    # ✅ Pass both token_path and token_json
+    service = get_gmail_service(user.gmail_token_path, user.gmail_token_json)
     rows = read_all_rows(sheet_id)
 
     for row_index, row in enumerate(rows, start=2):
@@ -153,19 +176,13 @@ def check_replies(
         replied = row[4] if len(row) > 4 else ""
         bounced = row[5] if len(row) > 5 else ""
         followup_count = int(row[6]) if len(row) > 6 and row[6] else 0
-        last_sent_date = row[7] if len(row) > 7 else ""
 
-        # Skip if:
-        # - No email address
-        # - Already replied
-        # - Bounced
-        # - Never sent (followup_count = 0)
+        # Skip if: No email, already replied, bounced, or never sent
         if not email or replied == "TRUE" or bounced == "TRUE" or followup_count == 0:
             continue
 
-        # ✅ Search for emails sent to this address
+        # Search for emails sent to this address
         try:
-            # Search for messages TO this email address
             results = service.users().messages().list(
                 userId="me",
                 q=f"to:{email}"
@@ -187,7 +204,7 @@ def check_replies(
 
             thread_messages = thread.get("messages", [])
 
-            # ✅ If thread has more than 1 message, there might be a reply
+            # If thread has more than 1 message, there might be a reply
             if len(thread_messages) > 1:
                 # Check messages after the first one
                 for msg in thread_messages[1:]:
@@ -197,7 +214,7 @@ def check_replies(
                         ""
                     )
 
-                    # ✅ If the reply is FROM the recipient (not from us)
+                    # If the reply is FROM the recipient (not from us)
                     if email.lower() in from_header.lower():
                         mark_replied(sheet_id, row_index)
 
@@ -212,8 +229,7 @@ def check_replies(
                         db.commit()
                         break
 
-        except HttpError as e:
-            # If there's an error checking this email, just continue
+        except HttpError:
             continue
 
 
@@ -230,9 +246,10 @@ def check_bounces(
     Check for bounced emails from the last 24 hours.
     Bounces are usually delivered as mailer-daemon messages.
     """
-    service = get_gmail_service(user.gmail_token_path)
+    # ✅ Pass both token_path and token_json
+    service = get_gmail_service(user.gmail_token_path, user.gmail_token_json)
 
-    # ✅ Only check bounces from the last 24 hours
+    # Only check bounces from the last 24 hours
     yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y/%m/%d")
     
     try:
@@ -258,7 +275,7 @@ def check_bounces(
         payload = message.get("payload", {})
         body = ""
 
-        # ✅ Extract body from all parts
+        # Extract body from all parts
         if "parts" in payload:
             for part in payload.get("parts", []):
                 if part.get("mimeType") == "text/plain":
@@ -271,7 +288,7 @@ def check_bounces(
             if data:
                 body = base64.urlsafe_b64decode(data).decode(errors="ignore")
 
-        # ✅ Extract bounced email address from body
+        # Extract bounced email address from body
         match = re.search(
             r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})',
             body
@@ -282,7 +299,7 @@ def check_bounces(
 
         bounced_email = match.group(1).lower()
 
-        # ✅ Find the bounced email in the sheet
+        # Find the bounced email in the sheet
         for idx, row in enumerate(rows, start=2):
             if row and len(row) > 0 and row[0].lower() == bounced_email:
                 mark_bounced(sheet_id, idx, "Mail bounced (mailer-daemon)")

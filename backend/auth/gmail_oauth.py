@@ -1,3 +1,5 @@
+# backend/auth/gmail_oauth.py
+
 import os
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
@@ -37,7 +39,7 @@ def connect_gmail(request: Request):
     flow = Flow.from_client_secrets_file(
         str(GMAIL_CLIENT_SECRET_FILE),
         scopes=GMAIL_SCOPES,
-        redirect_uri=GMAIL_REDIRECT_URI  # ✅ Now uses dynamic URI
+        redirect_uri=GMAIL_REDIRECT_URI
     )
 
     authorization_url, state = flow.authorization_url(
@@ -60,19 +62,32 @@ def gmail_callback(request: Request, code: str, db: Session = Depends(get_db)):
     flow = Flow.from_client_secrets_file(
         str(GMAIL_CLIENT_SECRET_FILE),
         scopes=GMAIL_SCOPES,
-        redirect_uri=GMAIL_REDIRECT_URI  # ✅ Now uses dynamic URI
+        redirect_uri=GMAIL_REDIRECT_URI
     )
 
     flow.fetch_token(code=code)
     credentials = flow.credentials
 
-    token_path = get_token_path(user_id)
-    with open(token_path, "w") as token_file:
-        token_file.write(credentials.to_json())
-
-    # Save token path in DB
+    # ✅ Get token as JSON string
+    token_json = credentials.to_json()
+    
+    # Get user from database
     user = db.query(User).filter(User.id == user_id).first()
-    user.gmail_token_path = token_path
+    
+    # ✅ Save to database (persists on Render)
+    user.gmail_token_json = token_json
+    
+    # ✅ Also save to file for local development (ephemeral on Render)
+    token_path = get_token_path(user_id)
+    try:
+        with open(token_path, "w") as token_file:
+            token_file.write(token_json)
+        user.gmail_token_path = token_path
+    except Exception as e:
+        # If file write fails (e.g., on read-only filesystem), just skip
+        print(f"Warning: Could not write token file: {e}")
+        user.gmail_token_path = None
+    
     db.commit()
 
     return RedirectResponse("/frontend/dashboard.html")
