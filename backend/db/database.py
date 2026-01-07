@@ -18,8 +18,8 @@ if DATABASE_URL.startswith("sqlite"):
 engine: Engine = create_engine(
     DATABASE_URL,
     connect_args=connect_args,  # ✅ Empty dict for PostgreSQL, SQLite args for SQLite
-    pool_size=20,                # Increased pool size
-    max_overflow=40,             # Increased overflow
+    pool_size=5,                # Increased pool size
+    max_overflow=10,             # Increased overflow
     pool_pre_ping=True,          # Verify connections before using
     pool_recycle=3600            # Recycle connections after 1 hour
 )
